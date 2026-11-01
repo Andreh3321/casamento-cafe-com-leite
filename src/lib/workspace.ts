@@ -393,6 +393,9 @@ export function exportResorts(resorts: Resort[]) {
     "Link editável": resort.bookingUrl,
     Favorito: resort.favorite ? "Sim" : "Não",
     Ranking: resort.ranking ?? "",
+    "Nome do quarto": resort.roomName,
+    "Nossa nota": resort.coupleRating ?? "",
+    "Nossas anotações": resort.coupleNotes,
   }));
   const sheet = XLSX.utils.json_to_sheet(rows);
   const book = XLSX.utils.book_new();
@@ -438,6 +441,9 @@ export function exportWorkspace(data: WorkspaceData) {
     "Link editável": resort.bookingUrl,
     Favorito: resort.favorite ? "Sim" : "Não",
     Ranking: resort.ranking ?? "",
+    "Nome do quarto": resort.roomName,
+    "Nossa nota": resort.coupleRating ?? "",
+    "Nossas anotações": resort.coupleNotes,
   }));
   XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(resorts), "Resorts");
   XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(data.tasks), "Tarefas");
@@ -495,6 +501,9 @@ export async function importResorts(file: File, current: Resort[]) {
       bookingUrl: hasValue(row, "Link editável") ? getString(row, "Link editável") : resort.bookingUrl,
       favorite: hasValue(row, "Favorito") ? getString(row, "Favorito").toLowerCase() === "sim" : resort.favorite,
       ranking: hasValue(row, "Ranking") ? getNumber(row, "Ranking") : resort.ranking,
+      roomName: hasValue(row, "Nome do quarto") ? getString(row, "Nome do quarto") : resort.roomName,
+      coupleRating: hasValue(row, "Nossa nota") ? getNumber(row, "Nossa nota") : resort.coupleRating,
+      coupleNotes: hasValue(row, "Nossas anotações") ? getString(row, "Nossas anotações") : resort.coupleNotes,
     };
   });
 }
