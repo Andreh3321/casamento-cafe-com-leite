@@ -1,4 +1,5 @@
 import * as XLSX from "xlsx";
+import { weddingBudget } from "./wedding-budget";
 
 export type Status = "A fazer" | "Em andamento" | "Concluído";
 export type Priority = "Baixa" | "Média" | "Alta";
@@ -30,6 +31,7 @@ export type BudgetCategory = {
   planned: number;
   contracted: number;
   paid: number;
+  notes?: string;
 };
 
 export type Payment = {
@@ -95,7 +97,16 @@ export type Resort = {
   ranking: number | null;
 };
 
+export type Guest = { id: string; name: string; side: "Ela" | "Ele"; group: string; contact: string; status: "A convidar" | "Convidado" | "Confirmado" | "Não vai"; notes: string };
+export type ColorPalette = { id: string; name: string; colors: string[]; favorite: boolean };
+export type HouseItem = { id: string; name: string; room: string; quantity: number; origin: "Comprar" | "Comprado" | "Ganhamos"; from: string; amount: number; notes: string };
+export type EventExpense = BudgetCategory & { event: "Jantar de noivado" | "Chá de casa nova"; dueDate: string; owner: string };
+
 export type WorkspaceData = {
+  guests: Guest[];
+  palettes: ColorPalette[];
+  houseItems: HouseItem[];
+  eventExpenses: EventExpense[];
   weddingDate: string;
   weddingLocation: string;
   guestEstimate: string;
@@ -257,6 +268,10 @@ export function createInitialResorts() {
 }
 
 export const initialWorkspace: WorkspaceData = {
+  guests: [],
+  palettes: [],
+  houseItems: [],
+  eventExpenses: [],
   weddingDate: "2027-07-03",
   weddingLocation: "A definir",
   guestEstimate: "120 a 150",
@@ -297,12 +312,7 @@ export const initialWorkspace: WorkspaceData = {
       notes: "Começar pelo benchmark Grand Bávaro Princess.",
     },
   ],
-  budgetCategories: [
-    { id: "budget-1", name: "Espaço", planned: 0, contracted: 0, paid: 0 },
-    { id: "budget-2", name: "Buffet", planned: 0, contracted: 0, paid: 0 },
-    { id: "budget-3", name: "Foto e vídeo", planned: 0, contracted: 0, paid: 0 },
-    { id: "budget-4", name: "Decoração", planned: 0, contracted: 0, paid: 0 },
-  ],
+  budgetCategories: weddingBudget,
   payments: [],
   suppliers: [],
   flights: [
@@ -326,6 +336,10 @@ export function normalizeWorkspace(value: unknown): WorkspaceData {
   return {
     ...initialWorkspace,
     ...raw,
+    guests: Array.isArray(raw.guests) ? raw.guests : [],
+    palettes: Array.isArray(raw.palettes) ? raw.palettes : [],
+    houseItems: Array.isArray(raw.houseItems) ? raw.houseItems : [],
+    eventExpenses: Array.isArray(raw.eventExpenses) ? raw.eventExpenses : [],
     dates: Array.isArray(raw.dates) ? raw.dates : initialWorkspace.dates,
     tasks: Array.isArray(raw.tasks) ? raw.tasks : initialWorkspace.tasks,
     budgetCategories: Array.isArray(raw.budgetCategories) ? raw.budgetCategories : initialWorkspace.budgetCategories,
