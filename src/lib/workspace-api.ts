@@ -20,7 +20,7 @@ export function useAuth() {
   }, []);
   return {
     user: user
-      ? { name: (user.user_metadata?.full_name as string | undefined) ?? user.email?.split("@")[0] ?? null, email: user.email ?? null }
+      ? { name: (user.user_metadata?.["full_name"] as string | undefined) ?? user.email?.split("@")[0] ?? null, email: user.email ?? null }
       : null,
     userId: user?.id ?? null,
     loading,
