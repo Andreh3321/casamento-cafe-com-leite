@@ -445,7 +445,7 @@ export async function importResorts(file: File, current: Resort[]) {
   const buffer = await file.arrayBuffer();
   const workbook = XLSX.read(buffer, { type: "array" });
   const firstSheet = workbook.Sheets[workbook.SheetNames[0] ?? ""];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet, { defval: "" });
+  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(firstSheet!, { defval: "" });
   return current.map((resort, index) => {
     const row = rows.find(candidate => hasValue(candidate, "ID") && getString(candidate, "ID") === resort.id)
       ?? rows.find(candidate => hasValue(candidate, "Nome do resort – clique para Booking") && getString(candidate, "Nome do resort – clique para Booking") === resort.name)
