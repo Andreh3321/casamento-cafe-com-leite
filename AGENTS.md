@@ -11,3 +11,5 @@
 
 - The couple's workspace is a single shared JSON row (`workspaces`, slug `nossa-casamento`) gated by `workspace_members` + share code RPCs; keeps schema stable as modules change (ported from the original Manus app).
 - UI lives in `src/components/NossaCasamento.tsx` with plain CSS classes in `src/styles.css`, ported verbatim from the original design.
+- Guest lists, palettes, household inventory and event expense views live in a dedicated CouplePlanning module and use additive arrays in the existing shared JSON workspace, preserving existing data and access controls.
+- Imported wedding budget defaults are defined separately from views, so existing workspace imports and new workspace creation share the same verified source values.
