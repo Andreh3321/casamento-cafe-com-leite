@@ -356,7 +356,7 @@ export function normalizeWorkspace(value: unknown): WorkspaceData {
     suppliers: Array.isArray(raw.suppliers) ? raw.suppliers : initialWorkspace.suppliers,
     flights: Array.isArray(raw.flights) ? raw.flights : initialWorkspace.flights,
     documents: Array.isArray(raw.documents) ? raw.documents : initialWorkspace.documents,
-    resorts: (Array.isArray(raw.resorts) && raw.resorts.length > 0 ? raw.resorts : initialWorkspace.resorts).map(resort => ({ roomName: "", coupleRating: null, coupleNotes: "", ...resort })),
+    resorts: (Array.isArray(raw.resorts) && raw.resorts.length > 0 ? raw.resorts : initialWorkspace.resorts).map(resort => ({ ...resort, roomName: resort.roomName ?? "", coupleRating: resort.coupleRating ?? null, coupleNotes: resort.coupleNotes ?? "" })),
     notes: { ...initialWorkspace.notes, ...(raw.notes ?? {}) },
   };
 }
