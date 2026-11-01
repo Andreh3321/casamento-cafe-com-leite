@@ -118,9 +118,7 @@ export function paletteTheme(colors: readonly string[] | undefined | null): Reco
   };
 }
 
-/** The palette the site is wearing: the chosen one, otherwise the favorite, otherwise the first. */
+/** The palette the site is wearing: only the one the couple marked for it. */
 export function resolveSitePalette(data: WorkspaceData): ColorPalette | undefined {
-  return data.palettes.find(palette => palette.id === data.sitePaletteId)
-    ?? data.palettes.find(palette => palette.favorite)
-    ?? data.palettes[0];
+  return data.palettes.find(palette => palette.id === data.sitePaletteId);
 }

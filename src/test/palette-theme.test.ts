@@ -36,11 +36,11 @@ describe('Site theme from palettes', () => {
     }
   });
 
-  it('picks the chosen palette, then the favorite, then the first', () => {
-    const palettes = [palette('a', ['#c86b52']), palette('b', ['#193b42'], true), palette('c', ['#d5a94b'])];
-    expect(resolveSitePalette(workspace(palettes, 'c'))?.id).toBe('c');
-    expect(resolveSitePalette(workspace(palettes, null))?.id).toBe('b');
-    expect(resolveSitePalette(workspace([palette('a', ['#c86b52']), palette('c', ['#d5a94b'])], null))?.id).toBe('a');
+  it('only paints the site with the palette marked for it', () => {
+    const palettes = [palette('a', ['#c86b52']), palette('b', ['#193b42'], true)];
+    expect(resolveSitePalette(workspace(palettes, 'b'))?.id).toBe('b');
+    expect(resolveSitePalette(workspace(palettes, null))).toBeUndefined();
+    expect(resolveSitePalette(workspace(palettes, 'gone'))).toBeUndefined();
     expect(resolveSitePalette(workspace([], null))).toBeUndefined();
   });
 
@@ -48,10 +48,5 @@ describe('Site theme from palettes', () => {
     const saved = JSON.parse(JSON.stringify(workspace([palette('a', ['#c86b52']), palette('b', ['#193b42'])], 'b')));
     expect(normalizeWorkspace(saved).sitePaletteId).toBe('b');
     expect(resolveSitePalette(normalizeWorkspace(saved))?.id).toBe('b');
-  });
-
-  it('falls back to the favorite when the chosen palette was deleted', () => {
-    const data = normalizeWorkspace({ palettes: [palette('b', ['#193b42'], true)], sitePaletteId: 'gone' });
-    expect(resolveSitePalette(data)?.id).toBe('b');
   });
 });
