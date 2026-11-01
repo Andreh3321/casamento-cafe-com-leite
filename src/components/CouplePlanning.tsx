@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { Check, Download, Pencil, Plus, Sparkles, Star, Trash2, Users, Palette, House, WalletCards } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,18 @@ import { budgetTotals } from '@/lib/wedding-budget';
 import { formatCurrency, type WorkspaceData, type Guest, type HouseItem, type EventExpense, type ColorPalette } from '@/lib/workspace';
 import * as XLSX from 'xlsx';
 import { cn } from '@/lib/utils';
-import { resolveSitePalette } from '@/lib/palette-theme';
+import { paletteTheme, resolveSitePalette } from '@/lib/palette-theme';
+
+/** Mini site mockup painted with the palette's own colors, scoped to this box only. */
+function PalettePreview({ colors }: { colors: string[] }) {
+  const theme = paletteTheme(colors);
+  if (!theme) return null;
+  return <div className="palette-preview" style={theme as CSSProperties} aria-hidden>
+    <div className="palette-preview__nav"><span className="palette-preview__logo">Nosso Casamento</span><span className="palette-preview__links"><i /><i /><i /></span></div>
+    <div className="palette-preview__hero"><small>Contagem regressiva</small><strong>O grande dia <em>de vocês.</em></strong><span className="palette-preview__actions"><b>Ver tarefas</b><u>Orçamento</u></span></div>
+    <div className="palette-preview__card"><span>Convidados</span><strong>120</strong><i /></div>
+  </div>;
+}
 
 type Props = { data: WorkspaceData; update: (data: WorkspaceData) => void };
 const id = () => crypto.randomUUID();
