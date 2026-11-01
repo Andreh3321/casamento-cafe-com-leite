@@ -37,9 +37,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/_core/hooks/useAuth";
-import { startLogin } from "@/const";
-import { trpc } from "@/lib/trpc";
+import { useAuth, loadWorkspace, createWorkspace, saveWorkspace as saveWorkspaceApi, joinWorkspace } from "@/lib/workspace-api";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   calculateHoneymoonIndex,
   exportResorts,
@@ -120,6 +121,29 @@ function StatCard({ label, value, detail, accent = "sand", icon: Icon }: { label
 }
 
 function AuthGate({ loading }: { loading: boolean }) {
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    setBusy(true);
+    try {
+      if (mode === "signin") {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
+        if (error) throw error;
+        if (!data.session) toast.success("Enviamos um e-mail de confirmação. Abram o link para entrar.");
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível entrar.");
+    } finally { setBusy(false); }
+  };
+  const google = async () => {
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    if (result.error) toast.error("Não foi possível entrar com Google.");
+  };
   return (
     <div className="auth-screen">
       <div className="auth-card">
@@ -127,9 +151,11 @@ function AuthGate({ loading }: { loading: boolean }) {
         <div className="eyebrow">PROJETO PESSOAL</div>
         <h1>Nossa<br /><em>Casamento</em></h1>
         <p>Um lugar só de vocês para cuidar das decisões do casamento e guardar a viagem que começa depois.</p>
-        <Button onClick={() => startLogin()} disabled={loading} className="auth-button">
-          <ShieldCheck size={17} /> Entrar com Manus
-        </Button>
+        <Button onClick={() => void google()} disabled={loading} className="auth-button"><ShieldCheck size={17} /> Entrar com Google</Button>
+        <Input type="email" placeholder="E-mail" value={email} onChange={event => setEmail(event.target.value)} />
+        <Input type="password" placeholder="Senha" value={password} onChange={event => setPassword(event.target.value)} onKeyDown={event => { if (event.key === "Enter") void submit(); }} />
+        <Button onClick={() => void submit()} disabled={busy || !email || password.length < 6} className="auth-button">{mode === "signin" ? "Entrar com e-mail" : "Criar conta"}</Button>
+        <button className="text-action" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>{mode === "signin" ? "Ainda não tem conta? Criar conta" : "Já tem conta? Entrar"}</button>
         <small>O acesso mantém o workspace compartilhado e editável nos dois celulares.</small>
       </div>
     </div>
@@ -138,8 +164,8 @@ function AuthGate({ loading }: { loading: boolean }) {
 
 function WorkspaceJoinGate({ onJoined }: { onJoined: () => void }) {
   const [code, setCode] = useState("");
-  const join = trpc.workspace.join.useMutation({ onSuccess: onJoined, onError: error => toast.error(error.message) });
-  return <div className="auth-screen"><div className="auth-card"><div className="brand-mark brand-mark--large"><span>N</span><span>C</span></div><div className="eyebrow">WORKSPACE COMPARTILHADO</div><h1>Entrar no<br /><em>projeto do casal</em></h1><p>Peçam o código de compartilhamento a quem criou este workspace e digitem abaixo para entrar.</p><Input autoFocus placeholder="Código de compartilhamento" value={code} onChange={event => setCode(event.target.value)} /><Button className="auth-button" disabled={code.length < 4 || join.isPending} onClick={() => join.mutate({ code })}><Link2 size={16} /> Entrar no workspace</Button><small>O código só dá acesso a este projeto; ele não altera o login Manus.</small></div></div>;
+  const join = useMutation({ mutationFn: async ({ code }: { code: string }) => { if (!(await joinWorkspace(code))) throw new Error("Código de compartilhamento inválido."); }, onSuccess: onJoined, onError: (error: Error) => toast.error(error.message) });
+  return <div className="auth-screen"><div className="auth-card"><div className="brand-mark brand-mark--large"><span>N</span><span>C</span></div><div className="eyebrow">WORKSPACE COMPARTILHADO</div><h1>Entrar no<br /><em>projeto do casal</em></h1><p>Peçam o código de compartilhamento a quem criou este workspace e digitem abaixo para entrar.</p><Input autoFocus placeholder="Código de compartilhamento" value={code} onChange={event => setCode(event.target.value)} /><Button className="auth-button" disabled={code.length < 4 || join.isPending} onClick={() => join.mutate({ code })}><Link2 size={16} /> Entrar no workspace</Button><small>O código só dá acesso a este projeto; ele não altera o seu login.</small></div></div>;
 }
 
 function Sidebar({ active, setActive, user, onLogout }: { active: TabId; setActive: (tab: TabId) => void; user: { name?: string | null; email?: string | null } | null; onLogout: () => void }) {
@@ -358,13 +384,23 @@ function HoneymoonView({ data, update }: { data: WorkspaceData; update: (next: W
 export default function Home() {
   const { user, loading: authLoading, isAuthenticated, logout } = useAuth();
   const [active, setActive] = useState<TabId>("overview");
-  const workspaceQuery = trpc.workspace.get.useQuery(undefined, { enabled: isAuthenticated, retry: false });
-  const shareCodeQuery = trpc.workspace.shareCode.useQuery(undefined, { enabled: isAuthenticated && Boolean(workspaceQuery.data?.data), retry: false });
-  const saveWorkspace = trpc.workspace.save.useMutation();
+  const workspaceQuery = useQuery({
+    queryKey: ["workspace", user?.email],
+    enabled: isAuthenticated,
+    retry: false,
+    queryFn: async () => {
+      let result = await loadWorkspace();
+      if (result.status === "empty") { await createWorkspace(initialWorkspace); result = await loadWorkspace(); }
+      return result;
+    },
+  });
+  const shareCode = workspaceQuery.data?.status === "member" ? workspaceQuery.data.code : null;
+  const shareCodeQuery = { data: { code: shareCode } };
+  const saveWorkspace = useMutation({ mutationFn: ({ data }: { data: Record<string, unknown> }) => saveWorkspaceApi(data) });
   const [data, setData] = useState<WorkspaceData>(initialWorkspace);
 
   useEffect(() => {
-    if (workspaceQuery.data?.data) setData(normalizeWorkspace(workspaceQuery.data.data));
+    if (workspaceQuery.data?.status === "member" && workspaceQuery.data.data) setData(normalizeWorkspace(workspaceQuery.data.data));
   }, [workspaceQuery.data]);
 
   useEffect(() => {
@@ -400,7 +436,7 @@ export default function Home() {
   const activeLabel = useMemo(() => tabs.find(tab => tab.id === active)?.label ?? "Visão geral", [active]);
   if (authLoading) return <div className="loading-screen"><div className="brand-mark brand-mark--large"><span>N</span><span>C</span></div><div className="loading-line" /><p>abrindo o workspace de vocês…</p></div>;
   if (!isAuthenticated) return <AuthGate loading={authLoading} />;
-  if (workspaceQuery.error?.data?.code === "FORBIDDEN") return <WorkspaceJoinGate onJoined={() => void workspaceQuery.refetch()} />;
+  if (workspaceQuery.data?.status === "needs_code") return <WorkspaceJoinGate onJoined={() => void workspaceQuery.refetch()} />;
 
   return <div className="app-shell"><Sidebar active={active} setActive={setActive} user={user} onLogout={() => void logout()} /><div className="workspace"><header className="topbar"><div className="mobile-menu-button mobile-menu-button--static" aria-hidden="true"><div className="project-dot" /></div><div className="breadcrumb"><span>Casamento + viagem</span><ChevronRight size={14} /><strong>{activeLabel}</strong></div><div className="topbar__actions"><span className="sync-status"><span className="sync-dot" /> {saveWorkspace.isPending ? "salvando…" : "salvo agora"}</span>{shareCodeQuery.data?.code && <button className="share-button" onClick={async () => { const code = shareCodeQuery.data?.code; if (!code) return; await navigator.clipboard?.writeText(code); toast.success(`Código copiado: ${code}`); }}>Compartilhar <Link2 size={14} /></button>}<button className="icon-button notification-button" onClick={() => setActive("tasks")}><Bell size={18} /><span /></button><div className="mini-avatar"><UserRound size={15} /></div></div></header><main className="main-content">{active === "overview" && <Overview data={data} update={update} setActive={setActive} />}{active === "wedding" && <WeddingView data={data} update={update} setActive={setActive} />}{active === "tasks" && <TasksView data={data} update={update} />}{active === "budget" && <BudgetView data={data} update={update} />}{active === "honeymoon" && <HoneymoonView data={data} update={update} />} {active === "flights" && <FlightsView data={data} update={update} />} {active === "documents" && <DocumentsView data={data} update={update} />}</main><footer className="workspace-footer"><span>feito para duas pessoas, uma decisão de cada vez.</span><span>última edição compartilhada</span></footer></div><MobileNav active={active} setActive={setActive} /></div>;
 }
