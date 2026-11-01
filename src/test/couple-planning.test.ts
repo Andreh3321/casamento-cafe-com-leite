@@ -25,4 +25,18 @@ describe('Separate planning lists', () => {
     expect(data.guests).toEqual([]);
     expect(data.houseItems).toEqual([]);
   });
+  it('adds room name, couple rating and notes to resorts saved before they existed', () => {
+    const old = { id: 'resort-01', name: 'Grand Bávaro', hydro: 'Confirmada', favorite: true };
+    const [resort] = normalizeWorkspace({ resorts: [old] }).resorts;
+    expect(resort?.roomName).toBe('');
+    expect(resort?.coupleRating).toBeNull();
+    expect(resort?.coupleNotes).toBe('');
+    expect(resort?.name).toBe('Grand Bávaro');
+  });
+  it('keeps the couple rating and notes once saved', () => {
+    const saved = { id: 'resort-01', name: 'Grand Bávaro', roomName: 'Platinum Suite', coupleRating: 9, coupleNotes: 'Adoramos a praia' };
+    const [resort] = normalizeWorkspace({ resorts: [saved] }).resorts;
+    expect(resort?.coupleRating).toBe(9);
+    expect(resort?.coupleNotes).toBe('Adoramos a praia');
+  });
 });

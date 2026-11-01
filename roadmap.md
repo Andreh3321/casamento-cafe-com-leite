@@ -7,3 +7,5 @@
 - [x] Add separate engagement dinner and housewarming expense sheets.
 - [x] Import uploaded wedding budget and preserve observations.
 - [x] Verify saving and totals in the actual shared workspace.
+- [x] Add per-palette site preview before applying.
+- [x] Add resort room name, couple rating and notes on the honeymoon page.
