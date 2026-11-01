@@ -64,6 +64,8 @@ import {
   type WeddingTask,
 } from "@/lib/workspace";
 import { cn } from "@/lib/utils";
+import { resolveSitePalette } from "@/lib/palette-theme";
+import { useSiteTheme } from "@/lib/site-theme";
 import { toast } from "sonner";
 import { GuestsView, PalettesView, HouseView, EventsView } from "./CouplePlanning";
 import budgetSource from "@/assets/wedding-budget.asset.json";
@@ -410,6 +412,8 @@ export default function Home() {
   useEffect(() => {
     if (workspaceQuery.data?.status === "member" && workspaceQuery.data.data) setData(normalizeWorkspace(workspaceQuery.data.data));
   }, [workspaceQuery.data]);
+
+  useSiteTheme(resolveSitePalette(data));
 
   useEffect(() => {
     if (typeof window === "undefined" || !("Notification" in window) || Notification.permission !== "granted") return;

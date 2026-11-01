@@ -13,3 +13,4 @@
 - UI lives in `src/components/NossaCasamento.tsx` with plain CSS classes in `src/styles.css`, ported verbatim from the original design.
 - Guest lists, palettes, household inventory and event expense views live in a dedicated CouplePlanning module and use additive arrays in the existing shared JSON workspace, preserving existing data and access controls.
 - Imported wedding budget defaults are defined separately from views, so existing workspace imports and new workspace creation share the same verified source values.
+- Site colors are CSS variables only: a palette marked for the site repaints them via `src/lib/palette-theme.ts` + `src/lib/site-theme.ts`, and every generated color passes a contrast check so text stays readable.

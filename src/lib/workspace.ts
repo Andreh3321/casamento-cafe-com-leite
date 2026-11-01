@@ -105,6 +105,7 @@ export type EventExpense = BudgetCategory & { event: "Jantar de noivado" | "Chá
 export type WorkspaceData = {
   guests: Guest[];
   palettes: ColorPalette[];
+  sitePaletteId: string | null;
   houseItems: HouseItem[];
   eventExpenses: EventExpense[];
   weddingDate: string;
@@ -270,6 +271,7 @@ export function createInitialResorts() {
 export const initialWorkspace: WorkspaceData = {
   guests: [],
   palettes: [],
+  sitePaletteId: null,
   houseItems: [],
   eventExpenses: [],
   weddingDate: "2027-07-03",
@@ -338,6 +340,7 @@ export function normalizeWorkspace(value: unknown): WorkspaceData {
     ...raw,
     guests: Array.isArray(raw.guests) ? raw.guests : [],
     palettes: Array.isArray(raw.palettes) ? raw.palettes : [],
+    sitePaletteId: typeof raw.sitePaletteId === "string" ? raw.sitePaletteId : null,
     houseItems: Array.isArray(raw.houseItems) ? raw.houseItems : [],
     eventExpenses: Array.isArray(raw.eventExpenses) ? raw.eventExpenses : [],
     dates: Array.isArray(raw.dates) ? raw.dates : initialWorkspace.dates,
