@@ -95,6 +95,9 @@ export type Resort = {
   bookingUrl: string;
   favorite: boolean;
   ranking: number | null;
+  roomName: string;
+  coupleRating: number | null;
+  coupleNotes: string;
 };
 
 export type Guest = { id: string; name: string; side: "Ela" | "Ele"; group: string; contact: string; status: "A convidar" | "Convidado" | "Confirmado" | "Não vai"; notes: string };
@@ -264,6 +267,9 @@ export function createInitialResorts() {
       bookingUrl: seed?.bookingUrl ?? "",
       favorite: index === 4,
       ranking: index === 4 ? 1 : null,
+      roomName: seed?.roomName ?? "",
+      coupleRating: seed?.coupleRating ?? null,
+      coupleNotes: seed?.coupleNotes ?? "",
     };
   });
 }
@@ -350,7 +356,7 @@ export function normalizeWorkspace(value: unknown): WorkspaceData {
     suppliers: Array.isArray(raw.suppliers) ? raw.suppliers : initialWorkspace.suppliers,
     flights: Array.isArray(raw.flights) ? raw.flights : initialWorkspace.flights,
     documents: Array.isArray(raw.documents) ? raw.documents : initialWorkspace.documents,
-    resorts: Array.isArray(raw.resorts) && raw.resorts.length > 0 ? raw.resorts : initialWorkspace.resorts,
+    resorts: (Array.isArray(raw.resorts) && raw.resorts.length > 0 ? raw.resorts : initialWorkspace.resorts).map(resort => ({ ...resort, roomName: resort.roomName ?? "", coupleRating: resort.coupleRating ?? null, coupleNotes: resort.coupleNotes ?? "" })),
     notes: { ...initialWorkspace.notes, ...(raw.notes ?? {}) },
   };
 }
@@ -387,6 +393,9 @@ export function exportResorts(resorts: Resort[]) {
     "Link editável": resort.bookingUrl,
     Favorito: resort.favorite ? "Sim" : "Não",
     Ranking: resort.ranking ?? "",
+    "Nome do quarto": resort.roomName,
+    "Nossa nota": resort.coupleRating ?? "",
+    "Nossas anotações": resort.coupleNotes,
   }));
   const sheet = XLSX.utils.json_to_sheet(rows);
   const book = XLSX.utils.book_new();
@@ -432,6 +441,9 @@ export function exportWorkspace(data: WorkspaceData) {
     "Link editável": resort.bookingUrl,
     Favorito: resort.favorite ? "Sim" : "Não",
     Ranking: resort.ranking ?? "",
+    "Nome do quarto": resort.roomName,
+    "Nossa nota": resort.coupleRating ?? "",
+    "Nossas anotações": resort.coupleNotes,
   }));
   XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(resorts), "Resorts");
   XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(data.tasks), "Tarefas");
@@ -489,6 +501,9 @@ export async function importResorts(file: File, current: Resort[]) {
       bookingUrl: hasValue(row, "Link editável") ? getString(row, "Link editável") : resort.bookingUrl,
       favorite: hasValue(row, "Favorito") ? getString(row, "Favorito").toLowerCase() === "sim" : resort.favorite,
       ranking: hasValue(row, "Ranking") ? getNumber(row, "Ranking") : resort.ranking,
+      roomName: hasValue(row, "Nome do quarto") ? getString(row, "Nome do quarto") : resort.roomName,
+      coupleRating: hasValue(row, "Nossa nota") ? getNumber(row, "Nossa nota") : resort.coupleRating,
+      coupleNotes: hasValue(row, "Nossas anotações") ? getString(row, "Nossas anotações") : resort.coupleNotes,
     };
   });
 }

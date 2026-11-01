@@ -23,3 +23,21 @@
 .palette-usage{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 12px}
 .palette-tag{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--coral-deep);font-weight:700}
 .palette-card--used{border-color:var(--coral);box-shadow:0 0 0 1px var(--coral)}
+.palette-preview{margin:0 12px 12px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--paper);color:var(--ink);pointer-events:none}
+.planning-form .palette-preview{margin:18px 0 0}
+.palette-preview__nav{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--sidebar-bg);border-bottom:1px solid var(--line)}
+.palette-preview__logo{font-family:Georgia,serif;font-size:11px;color:var(--ink)}
+.palette-preview__links{display:flex;gap:4px}
+.palette-preview__links i{width:14px;height:4px;border-radius:2px;background:var(--ink-faint)}
+.palette-preview__hero{padding:12px 10px;background:var(--hero-bg)}
+.palette-preview__hero small{display:block;color:var(--coral-deep);font-size:8px;text-transform:uppercase;letter-spacing:.08em}
+.palette-preview__hero strong{display:block;font-family:Georgia,serif;font-size:14px;color:var(--ink);margin:3px 0 8px;font-weight:400}
+.palette-preview__hero em{color:var(--coral-deep);font-style:italic}
+.palette-preview__actions{display:flex;gap:6px}
+.palette-preview__actions b{background:var(--primary);color:var(--primary-foreground);padding:4px 8px;border-radius:4px;font-size:8px;font-weight:600}
+.palette-preview__actions u{border:1px solid var(--line);color:var(--ink-soft);padding:4px 8px;border-radius:4px;font-size:8px;text-decoration:none}
+.palette-preview__card{margin:10px;padding:8px 10px;background:var(--card);border:1px solid var(--line);border-radius:5px;display:flex;align-items:center;gap:8px}
+.palette-preview__card span{color:var(--ink-soft);font-size:8px;text-transform:uppercase;letter-spacing:.06em}
+.palette-preview__card strong{font-family:Georgia,serif;font-size:13px;color:var(--ink)}
+.palette-preview__card i{margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--gold-soft);border:1px solid var(--gold)}
+.editor-body textarea{font-size:11px;resize:vertical;min-height:80px}
