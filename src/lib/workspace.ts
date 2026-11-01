@@ -95,6 +95,9 @@ export type Resort = {
   bookingUrl: string;
   favorite: boolean;
   ranking: number | null;
+  roomName: string;
+  coupleRating: number | null;
+  coupleNotes: string;
 };
 
 export type Guest = { id: string; name: string; side: "Ela" | "Ele"; group: string; contact: string; status: "A convidar" | "Convidado" | "Confirmado" | "Não vai"; notes: string };
@@ -264,6 +267,9 @@ export function createInitialResorts() {
       bookingUrl: seed?.bookingUrl ?? "",
       favorite: index === 4,
       ranking: index === 4 ? 1 : null,
+      roomName: seed?.roomName ?? "",
+      coupleRating: seed?.coupleRating ?? null,
+      coupleNotes: seed?.coupleNotes ?? "",
     };
   });
 }
@@ -350,7 +356,7 @@ export function normalizeWorkspace(value: unknown): WorkspaceData {
     suppliers: Array.isArray(raw.suppliers) ? raw.suppliers : initialWorkspace.suppliers,
     flights: Array.isArray(raw.flights) ? raw.flights : initialWorkspace.flights,
     documents: Array.isArray(raw.documents) ? raw.documents : initialWorkspace.documents,
-    resorts: Array.isArray(raw.resorts) && raw.resorts.length > 0 ? raw.resorts : initialWorkspace.resorts,
+    resorts: (Array.isArray(raw.resorts) && raw.resorts.length > 0 ? raw.resorts : initialWorkspace.resorts).map(resort => ({ roomName: "", coupleRating: null, coupleNotes: "", ...resort })),
     notes: { ...initialWorkspace.notes, ...(raw.notes ?? {}) },
   };
 }
