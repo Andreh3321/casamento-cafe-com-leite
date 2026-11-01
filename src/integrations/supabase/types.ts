@@ -14,13 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      workspace_members: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_members_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspaces: {
+        Row: {
+          access_code: string
+          created_at: string
+          data: Json
+          id: string
+          owner_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          access_code?: string
+          created_at?: string
+          data?: Json
+          id?: string
+          owner_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          access_code?: string
+          created_at?: string
+          data?: Json
+          id?: string
+          owner_id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_workspace: {
+        Args: { _data: Json; _slug: string }
+        Returns: string
+      }
+      is_workspace_member: { Args: { _workspace_id: string }; Returns: boolean }
+      join_workspace: {
+        Args: { _code: string; _slug: string }
+        Returns: boolean
+      }
+      workspace_status: { Args: { _slug: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
