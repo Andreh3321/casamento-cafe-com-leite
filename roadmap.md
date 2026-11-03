@@ -9,3 +9,8 @@
 - [x] Verify saving and totals in the actual shared workspace.
 - [x] Add per-palette site preview before applying.
 - [x] Add resort room name, couple rating and notes on the honeymoon page.
+- [x] Dark mode toggle.
+- [x] Installable app (home screen icon).
+- [x] Stationery page (invitations etc.).
+- [x] Guests: main/secondary lists per side, roles without leaving main list, bulk add.
+- [x] Couple resort grades: Resort, Praia, Gastronomia, Quarto (avg of Conforto, Banheiro, Hidro, Vista, Privacidade), Benefícios.
