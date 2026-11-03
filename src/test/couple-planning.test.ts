@@ -39,4 +39,22 @@ describe('Separate planning lists', () => {
     expect(resort?.coupleRating).toBe(9);
     expect(resort?.coupleNotes).toBe('Adoramos a praia');
   });
+});import { coupleOverallScore, coupleRoomScore, emptyCoupleScores } from '@/lib/workspace';
+describe('Couple resort grades', () => {
+  const scores = { ...emptyCoupleScores(), resort: 9, beach: 8, food: 7, benefits: 6, comfort: 10, bathroom: 8, hydro: 6, view: 9, privacy: 7 };
+  it('room grade is the average of comfort, bathroom, hydro, view and privacy', () => expect(coupleRoomScore(scores)).toBe(8));
+  it('couple grade averages resort, beach, food, room and benefits', () => expect(coupleOverallScore(scores)).toBe(7.6));
+  it('ignores grades not given yet', () => expect(coupleRoomScore({ ...emptyCoupleScores(), comfort: 9, view: 7 })).toBe(8));
+});
+describe('Guest lists and roles', () => {
+  it('old guests go to the main list with no roles', () => {
+    const [g] = normalizeWorkspace({ guests: [{ id: '1', name: 'A', side: 'Ela', group: '', contact: '', status: 'A convidar', notes: '' }] }).guests;
+    expect(g?.list).toBe('Principal');
+    expect(g?.roles).toEqual([]);
+  });
+  it('a godparent stays on the main list', () => {
+    const [g] = normalizeWorkspace({ guests: [{ id: '1', name: 'A', side: 'Ele', list: 'Principal', roles: ['Padrinho'], group: '', contact: '', status: 'Confirmado', notes: '' }] }).guests;
+    expect(g?.list).toBe('Principal');
+    expect(g?.roles).toEqual(['Padrinho']);
+  });
 });

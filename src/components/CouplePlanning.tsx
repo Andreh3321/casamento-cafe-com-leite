@@ -89,11 +89,11 @@ export function CoupleScoresEditor({ resort, update }: { resort: Resort; update:
     const next = { ...scores, [field]: raw === '' ? null : Math.min(10, Math.max(0, Number(raw))) };
     update({ ...resort, coupleScores: next, coupleRating: coupleOverallScore(next) });
   };
-  const ScoreInput = ({ field, label }: { field: keyof CoupleScores; label: string }) => <label>{label}<Input type="number" min="0" max="10" step="0.5" value={scores[field] ?? ''} onChange={e => set(field, e.target.value)} /></label>;
+  const scoreInput = (field: keyof CoupleScores, label: string) => <label key={field}>{label}<Input type="number" min="0" max="10" step="0.5" value={scores[field] ?? ''} onChange={e => set(field, e.target.value)} /></label>;
   return <section className="couple-scores" aria-label="Nossas notas">
     <div className="couple-scores__head"><strong>Nossas notas (0 a 10)</strong><span>Nota do casal <b>{overall ?? '—'}</b></span></div>
-    <div className="rating-grid">{SCORE_FIELDS.slice(0, 3).map(([f, l]) => <ScoreInput key={f} field={f} label={l} />)}<label>Quarto<button type="button" className="couple-scores__room" aria-expanded={roomOpen} onClick={() => setRoomOpen(!roomOpen)}>{room ?? 'Avaliar'} <small>{roomOpen ? 'fechar' : 'detalhar'}</small></button></label><ScoreInput field="benefits" label="Benefícios" /></div>
-    {roomOpen && <div className="couple-scores__room-panel"><small>Notas só do quarto — a nota do quarto é a média delas.</small><div className="rating-grid">{ROOM_FIELDS.map(([f, l]) => <ScoreInput key={f} field={f} label={l} />)}</div></div>}
+    <div className="rating-grid">{SCORE_FIELDS.slice(0, 3).map(([f, l]) => scoreInput(f, l))}<label>Quarto<button type="button" className="couple-scores__room" aria-expanded={roomOpen} onClick={() => setRoomOpen(!roomOpen)}>{room ?? 'Avaliar'} <small>{roomOpen ? 'fechar' : 'detalhar'}</small></button></label>{scoreInput("benefits", "Benefícios")}</div>
+    {roomOpen && <div className="couple-scores__room-panel"><small>Notas só do quarto — a nota do quarto é a média delas.</small><div className="rating-grid">{ROOM_FIELDS.map(([f, l]) => scoreInput(f, l))}</div></div>}
   </section>;
 }
 
