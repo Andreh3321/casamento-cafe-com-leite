@@ -14,3 +14,4 @@
 - Guest lists, palettes, household inventory and event expense views live in a dedicated CouplePlanning module and use additive arrays in the existing shared JSON workspace, preserving existing data and access controls.
 - Imported wedding budget defaults are defined separately from views, so existing workspace imports and new workspace creation share the same verified source values.
 - Site colors are CSS variables only: a palette marked for the site repaints them via `src/lib/palette-theme.ts` + `src/lib/site-theme.ts`, and every generated color passes a contrast check so text stays readable.
+- Dark mode is a `.dark` class on <html>: fixed CSS colors are wrapped as `var(--hx-RRGGBB,#hex)` with dark values in the `.dark` block, so light mode stays identical; palettes only repaint highlight colors in dark mode.
