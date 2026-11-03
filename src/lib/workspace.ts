@@ -98,15 +98,30 @@ export type Resort = {
   roomName: string;
   coupleRating: number | null;
   coupleNotes: string;
+  coupleScores: CoupleScores;
 };
 
-export type Guest = { id: string; name: string; side: "Ela" | "Ele"; group: string; contact: string; status: "A convidar" | "Convidado" | "Confirmado" | "Não vai"; notes: string };
+export const GUEST_ROLES = ["Padrinho", "Madrinha", "Daminha", "Pajem", "Florista", "Participação"] as const;
+export type GuestRole = (typeof GUEST_ROLES)[number];
+export type Guest = { id: string; name: string; side: "Ela" | "Ele"; list: "Principal" | "Secundária"; roles: GuestRole[]; group: string; contact: string; status: "A convidar" | "Convidado" | "Confirmado" | "Não vai"; notes: string };
+export type StationeryItem = { id: string; name: string; kind: string; quantity: number; supplier: string; amount: number; dueDate: string; status: "Ideia" | "Orçando" | "Aprovado" | "Encomendado" | "Entregue"; notes: string };
+export type CoupleScores = { resort: number | null; beach: number | null; food: number | null; benefits: number | null; comfort: number | null; bathroom: number | null; hydro: number | null; view: number | null; privacy: number | null };
+export const emptyCoupleScores = (): CoupleScores => ({ resort: null, beach: null, food: null, benefits: null, comfort: null, bathroom: null, hydro: null, view: null, privacy: null });
+const average = (values: Array<number | null | undefined>) => {
+  const filled = values.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+  return filled.length ? Number((filled.reduce((a, b) => a + b, 0) / filled.length).toFixed(1)) : null;
+};
+/** Room grade = average of comfort, bathroom, hydro, view and privacy. */
+export const coupleRoomScore = (s: CoupleScores) => average([s.comfort, s.bathroom, s.hydro, s.view, s.privacy]);
+/** Couple grade = average of resort, beach, food, room (its own average) and benefits. */
+export const coupleOverallScore = (s: CoupleScores) => average([s.resort, s.beach, s.food, coupleRoomScore(s), s.benefits]);
 export type ColorPalette = { id: string; name: string; colors: string[]; favorite: boolean };
 export type HouseItem = { id: string; name: string; room: string; quantity: number; origin: "Comprar" | "Comprado" | "Ganhamos"; from: string; amount: number; notes: string };
 export type EventExpense = BudgetCategory & { event: "Jantar de noivado" | "Chá de casa nova"; dueDate: string; owner: string };
 
 export type WorkspaceData = {
   guests: Guest[];
+  stationery: StationeryItem[];
   palettes: ColorPalette[];
   sitePaletteId: string | null;
   houseItems: HouseItem[];
@@ -270,12 +285,14 @@ export function createInitialResorts() {
       roomName: seed?.roomName ?? "",
       coupleRating: seed?.coupleRating ?? null,
       coupleNotes: seed?.coupleNotes ?? "",
+      coupleScores: emptyCoupleScores(),
     };
   });
 }
 
 export const initialWorkspace: WorkspaceData = {
   guests: [],
+  stationery: [],
   palettes: [],
   sitePaletteId: null,
   houseItems: [],
@@ -344,7 +361,8 @@ export function normalizeWorkspace(value: unknown): WorkspaceData {
   return {
     ...initialWorkspace,
     ...raw,
-    guests: Array.isArray(raw.guests) ? raw.guests : [],
+    guests: (Array.isArray(raw.guests) ? raw.guests : []).map(guest => ({ ...guest, list: guest.list === "Secundária" ? "Secundária" : "Principal", roles: Array.isArray(guest.roles) ? guest.roles : [] })),
+    stationery: Array.isArray(raw.stationery) ? raw.stationery : [],
     palettes: Array.isArray(raw.palettes) ? raw.palettes : [],
     sitePaletteId: typeof raw.sitePaletteId === "string" ? raw.sitePaletteId : null,
     houseItems: Array.isArray(raw.houseItems) ? raw.houseItems : [],
@@ -356,9 +374,14 @@ export function normalizeWorkspace(value: unknown): WorkspaceData {
     suppliers: Array.isArray(raw.suppliers) ? raw.suppliers : initialWorkspace.suppliers,
     flights: Array.isArray(raw.flights) ? raw.flights : initialWorkspace.flights,
     documents: Array.isArray(raw.documents) ? raw.documents : initialWorkspace.documents,
-    resorts: (Array.isArray(raw.resorts) && raw.resorts.length > 0 ? raw.resorts : initialWorkspace.resorts).map(resort => ({ ...resort, roomName: resort.roomName ?? "", coupleRating: resort.coupleRating ?? null, coupleNotes: resort.coupleNotes ?? "" })),
+    resorts: (Array.isArray(raw.resorts) && raw.resorts.length > 0 ? raw.resorts : initialWorkspace.resorts).map(resort => ({ ...resort, roomName: resort.roomName ?? "", coupleRating: resort.coupleRating ?? null, coupleNotes: resort.coupleNotes ?? "", coupleScores: { ...emptyCoupleScores(), ...(resort.coupleScores ?? {}), ...(resort.coupleScores ? {} : { resort: resort.coupleRating ?? null }) } })),
     notes: { ...initialWorkspace.notes, ...(raw.notes ?? {}) },
   };
+}
+
+function coupleScoreColumns(resort: Resort) {
+  const s = resort.coupleScores ?? emptyCoupleScores();
+  return { "Nossa nota – Resort": s.resort ?? "", "Nossa nota – Praia": s.beach ?? "", "Nossa nota – Gastronomia": s.food ?? "", "Nossa nota – Quarto (média)": coupleRoomScore(s) ?? "", "Quarto – Conforto": s.comfort ?? "", "Quarto – Banheiro": s.bathroom ?? "", "Quarto – Hidro": s.hydro ?? "", "Quarto – Vista": s.view ?? "", "Quarto – Privacidade": s.privacy ?? "", "Nossa nota – Benefícios": s.benefits ?? "" };
 }
 
 export function formatCurrency(value: number, currency = "BRL") {
@@ -396,6 +419,7 @@ export function exportResorts(resorts: Resort[]) {
     "Nome do quarto": resort.roomName,
     "Nossa nota": resort.coupleRating ?? "",
     "Nossas anotações": resort.coupleNotes,
+    ...coupleScoreColumns(resort),
   }));
   const sheet = XLSX.utils.json_to_sheet(rows);
   const book = XLSX.utils.book_new();
@@ -444,6 +468,7 @@ export function exportWorkspace(data: WorkspaceData) {
     "Nome do quarto": resort.roomName,
     "Nossa nota": resort.coupleRating ?? "",
     "Nossas anotações": resort.coupleNotes,
+    ...coupleScoreColumns(resort),
   }));
   XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(resorts), "Resorts");
   XLSX.utils.book_append_sheet(book, XLSX.utils.json_to_sheet(data.tasks), "Tarefas");
